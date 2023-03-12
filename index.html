@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="card">
+  
+        <div class="circles-container">
+          <div class="activity ring" id="activity">
+            <div class="dot"></div>
+            <svg class="progress-ring" height="250" width="250">
+              <linearGradient id="aGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#F6337A"/>
+                <stop offset="100%" stop-color="#F71046"/>
+              </linearGradient>
+              <circle class="progress-ring__circle"
+                      stroke-width="32" stroke-linecap="round" stroke="url(#aGradient)"
+                      fill="transparent"
+                      r="109" cx="125" cy="125"/>
+            </svg>
+          </div>
+    
+          <div class="exercise ring" id="exercise">
+            <div class="dot"></div>
+            <svg class="progress-ring" height="185" width="185">
+              <linearGradient id="eGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#B1FD36"/>
+                <stop offset="100%" stop-color="#6FE430"/>
+              </linearGradient>
+              <circle class="progress-ring__circle"
+                      stroke-width="32" stroke-linecap="round" stroke="url(#eGradient)"
+                      fill="transparent"
+                      r="77" cx="92.5" cy="92.5"/>
+            </svg>
+          </div>
+    
+          <div class="stand ring" id="stand">
+            <div class="dot"></div>
+            <svg class="progress-ring" height="122" width="122">
+              <linearGradient id="sGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#15C2E0"/>
+                <stop offset="100%" stop-color="#1EF8D5"/>
+              </linearGradient>
+              <circle class="progress-ring__circle"
+                      stroke-width="32" stroke-linecap="round" stroke="url(#sGradient)"
+                      fill="transparent"
+                      r="45" cx="61" cy="61"/>
+            </svg>
+          </div>
+        </div>
+      
+        <div class="info">
+          <div class="row activity"><span id="activityValue">0</span>/154 Extremely likely</div>
+          <div class="row exercise"><span id="exerciseValue">0</span>/154 Likely</div>
+          <div class="row stand"><span id="standValue">0</span>/154 Unlikely</div>
+        </div>
+    
+    </div>
+    
+    <div class="controls">
+      <div class="number-input" data-target="activity">
+        <span class="increase">+</span>
+        <span class="value">72</span>
+        <span class="decrease">-</span>
+      </div>
+      
+      <div class="number-input" data-target="exercise">
+        <span class="increase">+</span>
+        <span class="value">34</span>
+        <span class="decrease">-</span>
+      </div>
+      
+      <div class="number-input" data-target="stand">
+        <span class="increase">+</span>
+        <span class="value">29</span>
+        <span class="decrease">-</span>
+      </div>
+      
+      <input class="controller" type="number" name="activityAmount" id="activityAmount" data-target="activity" value="400" hidden>
+      <input class="controller" type="number" name="exerciseAmount" id="exerciseAmount" data-target="exercise" value="24" hidden>
+      <input class="controller" type="number" name="standAmount" id="standAmount" data-target="stand" value="10" hidden>
+    </div>
+    <script>
+        const circleNames = ["activity", "exercise", "stand"];
+const circles = {};
+const controllers = document.querySelectorAll(".controller");
+
+
+function setProgress(circle) {
+  const percent = circle.value / circle.limit * 100;
+  
+  if(percent <= 100) {
+    const offset = circle.length - percent / 100 * circle.length;  
+    circle.circle.style.strokeDashoffset = offset;
+  } else {
+    circle.circle.style.strokeDashoffset = 0;
+  }
+  
+  circle.dot.style.transform = `rotate(${percent * 3.6}deg)`;
+}
+
+circleNames.forEach(circleName => {
+  const circle = document.querySelector(`#${circleName} .progress-ring__circle`);
+  const dot = document.querySelector(`#${circleName} .dot`);
+  const length = circle.getTotalLength();
+  let limit = 0;
+  let value = 0;
+  
+  if(circleName === "activity") { limit = 154; value = 72; };
+  if(circleName === "exercise") { limit = 154; value = 34; };
+  if(circleName === "stand") { limit = 154; value = 29; };
+  
+  circles[circleName] = {
+    circle,
+    dot,
+    length,
+    limit,
+    value
+  }
+  
+  circle.style.strokeDashoffset = length;
+  circle.style.strokeDasharray = `${length} ${length}`;
+  
+  document.querySelector(`#${circleName}Value`).textContent = circles[circleName].value;
+  
+  setProgress(circles[circleName]);
+})
+
+controllers.forEach(controller => {
+  
+  const target = controller.dataset.target;
+  const iRI = document.querySelector(`.number-input[data-target="${target}"] .increase`);
+  const iRV = document.querySelector(`.number-input[data-target="${target}"] .value`);
+  const iRD = document.querySelector(`.number-input[data-target="${target}"] .decrease`);
+  const incrementer = target === "activity" ? 50 : 1;
+  
+  iRI.addEventListener("click", e => {
+    const newValue = Math.abs(parseInt(iRV.textContent) + incrementer);
+    iRV.textContent = newValue;
+    controller.value = newValue;
+    controller.dispatchEvent(new Event('change'));
+  })
+  
+  iRD.addEventListener("click", e => {
+    const newValue = Math.abs(parseInt(iRV.textContent) - incrementer);
+    iRV.textContent = newValue;
+    controller.value = newValue;
+    controller.dispatchEvent(new Event('change'));
+  })
+  
+  controller.addEventListener("change", e => {
+    const value = e.target.value;
+    const target = e.target.dataset.target;
+    
+    circles[target].value = value;
+    setProgress(circles[target]);
+    document.querySelector(`#${target}Value`).textContent = circles[target].value;
+  })
+  
+})
+    </script>
+</body>
+
+</html>
