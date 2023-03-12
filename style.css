@@ -91,7 +91,6 @@
   .stand.ring:after {
     box-shadow: inset 1px 0 3px rgba(21, 194, 224, .);
   }
-  
   .card {
     display: flex;
     align-items: center;
